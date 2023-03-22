@@ -373,7 +373,8 @@
         return $output;
     }
     public function EditSubjectPeriodAssignment($subject_period_assignment_id,
-        $type_name, $max_submission, $due_date, $description, $subject_period_id, $subject_id, $image_value){
+        $type_name, $max_submission, $due_date, $description, $subject_period_id,
+        $subject_id, $image_value){
 
 
         // $subject_period_assignment_id = $this->GetSubjectPeriodAssignmentId();
@@ -404,6 +405,7 @@
 
         
         if ($image) {
+            
             if ($query['image']) {
                 unlink($query['image']);
             }
@@ -413,13 +415,16 @@
         }
 
         if($imagePath == 'assets/images/student_assignments/'){
+
             // If user didnt edit the image, let the image stay.
             $imagePath = $image_value;
         }
 
         $query = $this->con->prepare("UPDATE subject_period_assignment
-            SET assignment_upload=:assignment_upload, type_name=:type_name,max_submission=:max_submission,
-            description=:description, due_date=:due_date
+            SET assignment_upload=:assignment_upload,
+                type_name=:type_name,max_submission=:max_submission,
+                description=:description, due_date=:due_date
+            
             WHERE subject_period_assignment_id=:subject_period_assignment_id 
             AND subject_period_id=:subject_period_id 
             AND subject_id=:subject_id");
@@ -688,6 +693,7 @@
         return $table;
         
     }
+    
     public function createForm($hasReachedMaxSubmission){
 
         $subjectPeriodAssignmentId = $this->GetSubjectPeriodAssignmentId();

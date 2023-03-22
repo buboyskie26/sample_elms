@@ -5,7 +5,6 @@
     require_once('includes/classes/SubjectPeriodQuiz.php'); 
     require_once('includes/classes/SubjectPeriod.php'); 
 
-
     if(isset($_GET['teacher_id']) && isset($_GET['subject_period_id'])){
 
         $_SESSION['subject_period_id_session'] = $_GET['subject_period_id'];
@@ -111,7 +110,8 @@
 
                     $('#subjectPeriodQuizTable').load(location.href + " #subjectPeriodQuizTable");
 
-                }else if(res.status == 500) {
+                }
+                else if(res.status == 500) {
                     alert(res.message);
                 }
             }

@@ -13,18 +13,19 @@
         $teacher_course_id = $_GET['tc_id'];
         $subject_period_assignment_id = $_GET['subject_period_assignment_quiz_id'];
         
-        $subject_period_assignment = new SubjectPeriodAssignment($con, $subject_period_assignment_id, $teacherUserLoggedInObj);
+        // $subject_period_assignment = new SubjectPeriodAssignment($con,
+        //     $subject_period_assignment_id, $teacherUserLoggedInObj);
 
-        $my_student_assignment = new MyStudentAssignment($con, $teacherUserLoggedInObj,
-            $subject_period_assignment);
+        // $my_student_assignment = new MyStudentAssignment($con, $teacherUserLoggedInObj,
+        //     $subject_period_assignment);
         
-        $showQuizOfStudent = $my_student_assignment->ShowListStudentAnsweredQuiz($teacher_course_id);
+        // $showQuizOfStudent = $my_student_assignment->ShowListStudentAnsweredQuiz($teacher_course_id);
 
-        echo "
-            <div style='width: 100%' class='student_quiz_list'>
-                $showQuizOfStudent
-            </div>
-        ";
+        // echo "
+        //     <div style='width: 100%' class='student_quiz_list'>
+        //         $showQuizOfStudent
+        //     </div>
+        // ";
         
     }
     // If the URL doesnt have subject_period_assignment_id it show the code block

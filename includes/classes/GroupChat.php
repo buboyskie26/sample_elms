@@ -2,12 +2,26 @@
 
     class GroupChat{
 
-    private $con, $userLoggedInObj;
+    private $con, $userLoggedInObj, $sqlData;
 
-    public function __construct($con, $userLoggedInObj)
+    public function __construct($con, $input, $userLoggedInObj)
     {
         $this->con = $con;
         $this->userLoggedInObj = $userLoggedInObj;
+        $this->sqlData = $input;
+
+
+        $query = $this->con->prepare("SELECT * FROM group_chat
+            WHERE group_chat_id=:group_chat_id");
+
+            $query->bindValue(":group_chat_id", $input);
+            $query->execute();
+
+        $this->sqlData = $query->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function GroupChatName(){
+        return isset($this->sqlData['description']) ? $this->sqlData["description"] : ""; 
     }
 
     public function createChatForTeacher($group_chat_id){
@@ -17,21 +31,25 @@
         $login_teacher_username = $this->userLoggedInObj->GetUsername();
 
         $groupChatBody = $this->GenerateGroupChatBodyForTeacher($group_chat_id, $login_teacher_username);
+        $groupChatName = $this->GroupChatName();
         
         return "
             <div class='container-fluid'>
 		        <div class='row'>
 
-                    <div class='col-lg-10 col-md-8 col-sm-7'>
+                    <div class='col-lg-10 col-md-8 col-sm-7' id='body_container'>
+
                         <br />
-                        <h3 class='text-center'>Realtime Group Chat</h3>
+                        <input id='group_chat_id' name='group_chat_id' value='$group_chat_id' type='hidden'>
+                        <h3 class='text-center'>$groupChatName</h3>
                         <br />
  
-                        <div class='card-body' id='messages_area_for_groupchat_teacher'>
+                        <div class='card-body' 
+                            id='messages_area_for_groupchat_teacher'>
                             $groupChatBody
                         </div>
                             
-                        <div id='chat_area'>
+                        <div style='margin-top: 50px;' id='chat_area'>
                             <form id='chat_form_groupchat_teacher' method='POST' 
                                 data-parsley-errors-container='#validation_error'>
                                 <div class='input-group mb-3' style='height:7vh'>
@@ -87,7 +105,14 @@
                     $un = $teacher->GetName();
                 }
 
-                $created_at = $row['created_at'];
+                $date = $row['created_at'];
+                $am_pm = date("g:i a", strtotime($date));
+                $datex = date("M j,", strtotime($date));
+
+                // $datex = date("d-m-y", strtotime($date));
+                $datex .= " ".$am_pm;
+
+                // $created_at = date($row['created_at']);
                 $body = $row['body'];
 
                 // if(data.user_username == login_username)
@@ -116,7 +141,7 @@
                                     <b>$user_name </b>
                                     $body<br />
                                     <div class='text-right'>
-                                        <small><i>$created_at</i></small>
+                                        <small><i>$datex</i></small>
                                     </div>
                                 </div>
                             </div>
@@ -125,9 +150,6 @@
                 ";
             }
         }
-
-        
-
         
 
         return $output;
@@ -141,20 +163,22 @@
 
         $groupChatBody = $this->GenerateGroupChatBodyForStudent($group_chat_id, $login_username);
 
+        $groupChatName = $this->GroupChatName();
+
         return "
             <div class='container-fluid'>
 		        <div class='row'>
 
                     <div class='col-lg-10 col-md-8 col-sm-7'>
                         <br />
-                        <h3 class='text-center'>Realtime Group Chat</h3>
+                        <h3 class='text-center'>$groupChatName</h3>
                         <br />
  
                         <div class='card-body' id='messages_area_for_groupchat_student'>
                             $groupChatBody
                         </div>
                             
-                        <div id='chat_area'>
+                        <div style='margin-top: 50px;' id='chat_area'>
                             <form id='chat_form_groupchat_student' method='POST' data-parsley-errors-container='#validation_error'>
                                 <div class='input-group mb-3' style='height:7vh'>
 

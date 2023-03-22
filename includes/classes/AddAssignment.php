@@ -52,7 +52,9 @@
         $subject_period_id, $subject_id, $max_submission, $due_date,
         $description, $max_score){
 
-         
+        $teacher_course_id = $_GET['teacher_course_id'];
+
+
         $image = $_FILES['assignment_upload'] ?? null;
         $imagePath='';
 
@@ -80,14 +82,15 @@
             // mkdir(dirname($imagePath));
             move_uploaded_file($image['tmp_name'], $imagePath);
         }
+        
         $teacher_id = $this->teacherLoggedInObj->GetId();
 
         $query = $this->con->prepare("INSERT INTO subject_period_assignment(assignment_upload, 
             type_name, subject_period_id, subject_id, viewed, due_date,
-            max_submission, description, max_score, ass_type,teacher_id)
+            max_submission, description, max_score, ass_type,teacher_id, teacher_course_id)
             VALUES(:assignment_upload, :type_name, :subject_period_id,
                 :subject_id, :viewed, :due_date, :max_submission, :description,
-                :max_score, :ass_type, :teacher_id)");
+                :max_score, :ass_type, :teacher_id, :teacher_course_id)");
         
         $query->bindValue(":assignment_upload", $imagePath);
         $query->bindValue(":type_name", $type_name);
@@ -100,6 +103,7 @@
         $query->bindValue(":max_score", $max_score);
         $query->bindValue(":ass_type", "Dropbox");
         $query->bindValue(":teacher_id", $teacher_id);
+        $query->bindValue(":teacher_course_id", $teacher_course_id);
 
         $firstQuery = $query->execute();
 

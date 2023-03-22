@@ -98,6 +98,7 @@
         return $output;
     }
 
+    // rr
     private function ShowingStudentPassedAssignment($teacher_course_id){
 
         $subject_period_assignment_id = $this->subjectPeriodAssignment->GetSubjectPeriodAssignmentId();
@@ -438,7 +439,93 @@
         }
         return $arr;
     }
+
+    // private function ShowingStudentPassedAssignment($teacher_course_id)
+    public function AllStudentPassedAssignmentOnTeacherCourse($teacher_course_id){
+
+
+        $table = "
+            <table class='table  table-hover'>
+                <thead>
+                    <tr>
+                        <th class='text-center'>Submitted By:</th>
+                        <th class='text-center'>Date Upload</th>
+                        <th class='text-center'>File Name</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+        ";
+
+        $sql = $this->con->prepare("SELECT * FROM subject_period_assignment t1
+            INNER JOIN student_period_assignment t2 
+            ON t1.subject_period_assignment_id = t2.subject_period_assignment_id
+            WHERE t1.teacher_course_id=:teacher_course_id
+            AND t2.grade= 0
+            ORDER BY t2.passed_date");
+
+        $sql->bindValue(":teacher_course_id", $teacher_course_id);
+        $sql->execute();
+
+        if($sql->rowCount() > 0){
+            while($row = $sql->fetch(PDO::FETCH_ASSOC)){
+
+                // $file_name = $row['file_name'];
+
+                $table .= $this->PassedAssignmentOnTeacherCourseBody($row, $teacher_course_id);
+            }
+        }
+
+        $table .= "
+            </table>
+        ";
+
+        return $table;
+        
+    }
+
+    private function PassedAssignmentOnTeacherCourseBody($row, $teacher_course_id){
+
+        $subject_period_assignment_id = $row['subject_period_assignment_id'];
+        $student_period_assignment_id = $row['student_period_assignment_id'];
+        $tc_id = $row['subject_period_assignment_id'];
+
+        $file_name = $row['file_name'];
+        $student_id = $row['student_id'];
+
+        $student = new Student($this->con, $student_id);
+
+        $studentName = $student->GetName();
+        $date = $row['passed_date'];
+
+        $am_pm = date("g:i a", strtotime($date));
+        $datex = date("M j,", strtotime($date));
+        // $datex = date("d-m-y", strtotime($date));
+        $datex .= " ".$am_pm;
+
+        $output = "";
+
+        $output = "
+        
+            <tbody>
+                <tr>
+                    <td class='text-center'>$studentName</td>
+                    <td class='text-center'>$datex</td>
+                    <td class='text-center'>
+                        <a href='my_student_assignment_view.php?subject_period_assignment_id=$subject_period_assignment_id&student_period_assignment_id=$student_period_assignment_id&tc_id=$teacher_course_id'>
+                            <button class='btn btn-sm btn-success'>Check</button>
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+            
+        ";
+
+        return $output;
+    }
+    
 }
+
 ?>
 
 <div>

@@ -302,10 +302,41 @@ body {
   flex: 1;
 }
 
-.dashboard_section .right {
-  flex: 1;
-  margin-left: 15px;
+.videoGridHeader .right {
+  /* flex: 1;
+  margin-left: 15px; */
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
+
+
+.videoGridHeader .right .right-first{
+ 
+  margin-bottom: 15px;
+}
+
+
+.dashboard_section .right-content{
+    display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.dashboard_section .right-content .first{
+  margin-bottom: 15px;
+}
+
+.dashboard_section .right-content .second{
+  text-align: center;
+}
+
+
+.dashboard_section .left{
+  width: 65%;
+}
+
 
 .my_section .myStudentHeader,
 .dashboard_section .videoGridHeader,
@@ -314,7 +345,7 @@ body {
 }
 
 .my_section .myStudentHeader .right,
-.dashboard_section .videoGridHeader .right,
+/* .dashboard_section .videoGridHeader .right, */
 .my_classmates .videoGridHeader .right {
   margin-left: 50px;
 }
@@ -538,38 +569,40 @@ body {
   flex: 1;
 }
 
-
-.assignmentStudentSection{
+.assignmentStudentSection {
   display: flex;
-    flex: 1;
-    flex-direction: column;
+  flex: 1;
+  flex-direction: column;
 }
 
-.handout_section{
+.handout_section {
   width: 100%;
   min-height: 600px;
 }
 
-.handout_section .handout_content{
-  
+.handout_section .handout_content {
   border-top: 2px solid #fff;
 }
 
-.lesson_section{
+.lesson_section {
   display: flex;
   flex-direction: column;
   width: 100%;
 }
 
-
- 
-#messages_area_for_groupchat
-{
+#messages_area_for_groupchat,
+#messages_area_for_groupchat_teacher,
+#messages_area_for_groupchat_student,
+#chat_area {
   overflow-y: auto;
   /* In order for the box message have a bit space */
   margin-bottom: -33px;
+
 }
 
-
-
-
+#body_container3 {
+  display: flex;
+  flex-direction: column;
+  height: 75vh;
+  min-height: 550px;
+}

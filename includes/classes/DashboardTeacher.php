@@ -1,5 +1,7 @@
 <?php
 
+    // require_once __DIR__ . '/form-helper/MyStudentAssignmentHelper.php';
+
     class DashboardTeacher{
 
     private $con, $teacherLoggedInObj;
@@ -12,7 +14,6 @@
 
     public function create($latestSchoolYear){
 
-     
 
         $generateGridItems = $this->GenerateGridItems($latestSchoolYear);
 
@@ -23,12 +24,18 @@
                         My Class School Year: 2013-2014 (Sample)
                     </div>
                     <div class='right'>
-                        <a href='dashboard_teacher_create.php'>
+                        <div class='right-first'>
+                            <a href='dashboard_teacher_create.php'>
                             <button class='btn btn-success'>Add Class</button>
-                        </a>
-                        <a href='teacher_student_message.php'>
-                            <button class='btn btn-success'>Message To Student</button>
-                        </a>
+                            </a>
+                        </div>
+
+                        <div>
+                            <a href='teacher_student_message.php'>
+                                <button class='btn btn-success'>Message Student</button>
+                            </a>
+                        </div>
+
                     </div>
                 </div>
 
@@ -55,8 +62,10 @@
 
         $showingSchoolYear = $this->showingSchoolYearSelection();
 
+        
+
         $output = "
-            <div class='form-group'>
+            <div class='form-group' >
                 <form action='dashboard_teacher.php' method='POST'>
                     $showingSchoolYear
 
@@ -317,6 +326,7 @@
                     <div class='left'>
                         My Class School Year: 2013-2014 (Sample)
                     </div>
+
                     <div class='right'>
                         <a href='dashboard_teacher_create.php'>
                             <button class='btn btn-success'>Add Class</button>
@@ -367,6 +377,132 @@
         }else{
             return "";
         }
+    }
+
+    public function TeacherListAssignmentToBeChecked(){
+
+        $school_year = $this->con->prepare("SELECT school_year_id FROM school_year
+            WHERE statuses= 'Active'
+            LIMIT 1
+            ");
+        
+        $teacher_id = $this->teacherLoggedInObj->GetId();
+
+        $school_year->execute();
+
+        $active_school_year_id = $school_year->fetchColumn();
+
+       
+
+
+        $totalAssignmentDueToCheck =  $this->NumberOfTotalAssignmentTobeChecked($teacher_id);
+
+        $output = "
+            <div class=''>
+                <h1>Todo</h1>
+                    <div class='row'>
+                        <h5>$totalAssignmentDueToCheck Assignments due</h5>
+
+                    <div class='col-md-12'>
+                        <ul class='list-group'>
+        ";
+
+         // All of your given assignments aligned with your teacher course.
+        $teacher_id = $this->teacherLoggedInObj->GetId();
+
+        // The school year depends on the admin which school year should we
+        // dependent. get the setted school year and place it to WHERE
+        $statement = $this->con->prepare("SELECT subject_id, teacher_course_id FROM teacher_course
+            WHERE teacher_id=:teacher_id
+            AND school_year_id=:school_year_id
+            ");
+        
+        $statement->bindValue(":teacher_id", $teacher_id);
+        $statement->bindValue(":school_year_id", $active_school_year_id);
+
+        $statement->execute();
+
+
+
+        while($row = $statement->fetch(PDO::FETCH_ASSOC)){
+            
+            $subject_id = $row['subject_id'];
+            $teacher_course_id = $row['teacher_course_id'];
+
+
+            $output .= $this->GenerateTodoBody($subject_id, $teacher_course_id);
+            
+        }
+
+        $output .= "
+                    </ul>
+                </div>
+            </div>
+        </div>
+        ";
+        
+       
+        return $output;
+    }
+    private function GenerateTodoBody($subject_id,
+        $teacher_course_id){
+
+        // echo $subject_id;
+        
+        $output = "";
+
+        $totalAssignmentToBeChecked = 0;
+
+        $totalAssignmentToBeChecked = $this->NumberOfPassedAssignmentOnTeacherCourse($teacher_course_id);
+
+        $statement = $this->con->prepare("SELECT subject_title FROM subject
+            WHERE subject_id=:subject_id");
+        
+        $statement->bindValue(":subject_id", $subject_id);
+        $statement->execute();
+
+        while($row = $statement->fetch(PDO::FETCH_ASSOC)){
+
+            $subject_title = $row['subject_title'];
+
+            $output .= "
+                <a href='teacher_todo_assignment.php?teacher_course_id=$teacher_course_id'>
+                    <li class='list-group-item'>$subject_title  ($totalAssignmentToBeChecked)</li> 
+                </a>
+            ";
+        }
+        
+        return $output;
+    }
+
+    private function NumberOfPassedAssignmentOnTeacherCourse($teacher_course_id){
+        
+        $sql = $this->con->prepare("SELECT * FROM subject_period_assignment t1
+            INNER JOIN student_period_assignment t2 
+            ON t1.subject_period_assignment_id = t2.subject_period_assignment_id
+            WHERE t1.teacher_course_id=:teacher_course_id
+            AND t2.grade= 0
+            ORDER BY t2.passed_date");
+
+        $sql->bindValue(":teacher_course_id", $teacher_course_id);
+        $sql->execute();
+
+        return $sql->rowCount();
+    }
+    private function NumberOfTotalAssignmentTobeChecked($teacher_id){
+
+        $sql = $this->con->prepare("SELECT * FROM subject_period_assignment t1
+            INNER JOIN student_period_assignment t2 
+            ON t1.subject_period_assignment_id = t2.subject_period_assignment_id
+
+            WHERE t1.teacher_id=:teacher_id
+            AND t2.grade= 0
+            ORDER BY t2.passed_date");
+        
+        $sql->bindValue(":teacher_id", $teacher_id);
+        $sql->execute();
+
+        return $sql->rowCount();
     }
 }   
 

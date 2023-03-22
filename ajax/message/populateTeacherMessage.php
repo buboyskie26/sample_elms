@@ -39,7 +39,8 @@
         $queryTeacher->execute();
         $teacher_username = $queryTeacher->fetchColumn();
 
-        $fetchMessage = $message->GetOneToOneMessage($teacher_username, $student_username);
+        $fetchMessage = $message->GetOneToOneMessage($teacher_username,
+            $student_username, "student");
 
         echo json_encode($fetchMessage);
  

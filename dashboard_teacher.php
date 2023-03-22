@@ -4,7 +4,9 @@
     require_once('includes/classes/DashboardTeacher.php');
     require_once('includes/classes/Teacher.php');
     require_once('includes/classes/DashboardTeacherItem.php');
-    require_once('includes/classes/TeacherCourse.php');
+    require_once __DIR__ . '/includes/classes/TeacherCourse.php';
+    
+    // require_once('includes/classes/TeacherCourse.php');
 
     // echo "for teacher section ";
     // echo $_SESSION['teacherUserLoggedIn'];
@@ -57,11 +59,56 @@
                 echo $dashboard->ShowingSelectedSchoolYear($_POST['school_year_id'], $latestSchoolYear);
             }
 
+           
+
         ?>
+        
     </div>
-    <div class="right">
+    <div class="right-content">
         <?php
-            echo $dashboard->showSchoolYearForm();
+
+            $schoolYearForm = $dashboard->showSchoolYearForm();
+            $teacherAssignmentToBeChecked = $dashboard->TeacherListAssignmentToBeChecked();
+
+            echo "
+                <div class='first'>
+                    $schoolYearForm
+                </div>
+                <div class='second'>
+                    $teacherAssignmentToBeChecked
+                </div>
+            ";
+            
+
+            // Sample data to be encoded in JSON format
+            // $data = array(
+            //     "name" => "John Doe",
+            //     "age" => 30,
+            //     "email" => "johndoe@example.com",
+            //     "address" => array(
+            //         "street" => "123 Main St",
+            //         "city" => "Anytown",
+            //         "state" => "CA",
+            //         "zip" => "12345"
+            //     )
+            // );
+
+            // // Encoding the data in JSON format
+            // $json = json_encode($data);
+
+            // // Printing the JSON string
+            // echo $json . "\n";
+            // echo "Print to json encode";
+            // echo "<br>";
+
+            // Decoding the JSON string back into a PHP array
+            // $array = json_decode($json, true);
+            // echo "<br>";
+            // echo "Print to json decode";
+            // echo "<br>";
+            // // Printing the decoded array
+            // print_r($array);
+
         ?>
     </div>
 </div>

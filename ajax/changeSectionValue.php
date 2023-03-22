@@ -1,7 +1,5 @@
 <?php
 
-
-
     require_once("../includes/config.php");
 
     if(isset($_POST['subject_period_id']) 
@@ -19,8 +17,6 @@
         $yehey = $query->execute();
         
         echo $yehey;
-        
-    
         
     }
 ?>

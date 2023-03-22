@@ -20,6 +20,7 @@
         $form = $message->createMessageForm();
         $createLayout = $message->createLayoutForStudent();
 
+        $username = $studentLoggedIn;
         echo "
             $createLayout
         ";
@@ -78,12 +79,18 @@
 	$(document).ready(function(){
 
         var receiver_userid = '';
-        var login_student_username = '';
+        var receiver_username = '';
+        var login_student_username = $("#student_username").val();
+
+        var sender_teacher_username = "";
+
+        var user_name = '';
 
         $(document).on('click', '.select_user', function(){
 
-            // 
+            // Each Teacher id 
             receiver_userid = $(this).data('userid');
+            sender_teacher_username = $(this).data('teacher_username').toString();
 
             var login_user_id = $("#login_user_id").val();
             
@@ -93,15 +100,27 @@
 
 			$('#is_active_chat').val('Yes');
 
-            var user_name = $(`#list_user_name_${receiver_userid}`).text();
-            
+            user_name = $(`#list_user_name_${receiver_userid}`).text();
+
+            $(`#userid_${receiver_userid}`).text('');
+
+
+            // Remove sign of messaged.
+            $(`#user_username_${sender_teacher_username}`).text('');
+
             login_user_id = parseInt(login_user_id);
             receiver_userid = parseInt(receiver_userid);
 
             createMessageForm(user_name, login_user_id, receiver_userid);
 
-            login_student_username = $("#student_username").val();
+            // login_student_username = $("#student_username").val();
  
+            var chat_data = {
+                clicked_username: user_name
+            };
+
+			// conn.send(JSON.stringify(chat_data));
+
             $.ajax({
                 url:"ajax/message/populateTeacherMessage.php",
 				method: "POST",
@@ -113,7 +132,7 @@
 				dataType: "JSON",
 
              	success: function(data){
-                    console.log(data)
+                    // console.log(data)
 
                     var teacherName = user_name;
                     if(data != null)
@@ -169,6 +188,73 @@
 
         });
 
+        var conn = new WebSocket('ws://localhost:8080?private_chat_with=<?php echo $username; ?>');
+
+        conn.onopen = function(event)
+        {
+            console.log('Connection Established in teacher message with');
+        };
+
+        conn.onmessage = function(event)
+        {
+
+            var login_user_id = $("#login_user_id").val();
+
+            var data = JSON.parse(event.data);
+            console.log(data);
+            
+            var row_class = '';
+            var background_class = '';
+
+            var senderName = '';
+
+            if(data.private_message != null
+                && data.receiver_userid == login_user_id 
+                && data.sender_name_translate == user_name
+                || data.from == 'Me'
+            ){
+                
+                if(data.from == 'Me')
+                {
+                    row_class = 'row justify-content-end';
+                    background_class = 'alert-primary';
+                    senderName = 'Me';
+                }
+                else
+                {
+                    row_class = 'row justify-content-start';
+                    background_class = 'alert-success';
+                    senderName = user_name;
+                }
+
+                var html_data = `
+                    <div class="`+row_class+` card-body" id="messages_area_for_groupchat_student">
+                        <div class="col-sm-10">
+                            <div class="shadow-sm alert `+background_class+`">
+                                <b>`+senderName+` - </b>`+data.private_message+`<br />
+                                <div class="text-right">
+                                    <small>${data.created_at}</i></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                $('#messages_area').append(html_data);
+                $('#messages_area')
+                    .scrollTop($('#messages_area')[0].scrollHeight);  
+                
+                $("#chat_message").val('');
+
+            }else if(data.private_message != null
+                && data.receiver_userid == login_user_id 
+                && !data.sender_name_translate == user_name){
+                
+                $('#user_username_'+data.sender_username).html(
+                    '<span style="background-color: red;" class="badge badge-danger badge-pill">1</span>'
+                );
+            }
+        }
+
         // $('#chat_form').parsley();
 		$(document).on('submit', '#chat_form', function(event){
 
@@ -178,68 +264,77 @@
                 
 				var user_id = parseInt($('#login_user_id').val());
 				var message = $('#chat_message').val();
+
+                
+                var chat_data = {
+                    // sender_id: user_id,
+                    sender_username: login_student_username,
+                    receiver_userid: receiver_userid,
+                    receiver_username: sender_teacher_username, //sd
+					commando: 'privateMessage',
+					private_message: message,
+                    userType: "student"
+					// login_id: user_id,
+                    // sender_name: login_student_username,
+				};
+                
+				conn.send(JSON.stringify(chat_data));
                  
                 // console.log(message);
                 // console.log(receiver_userid);
-                 $.post({
-                    url: "ajax/message/createMessage.php",
-                    data: {user_id, receiver_userid, message},
-                    dataType: "JSON",
-                    success: function(data) {
 
-                        console.log(data)
+                // $.post({
+                //     url: "ajax/message/createMessage.php",
+                //     data: {user_id, receiver_userid, message},
+                //     dataType: "JSON",
+                //     success: function(data) {
 
-                        if(data != null) {
+                //         console.log(data)
 
-                            var output = '';
-                            var row_class= ''; 
-                            var background_class = '';
-                            var user_name = '';
+                //         if(data != null) {
+
+                //             var output = '';
+                //             var row_class= ''; 
+                //             var background_class = '';
+                //             var user_name = '';
                             
-                            if(data.from_username == login_student_username)
-                            {
-                                row_class = 'row justify-content-start';
+                //             if(data.from_username == login_student_username)
+                //             {
+                //                 row_class = 'row justify-content-start';
 
-                                background_class = 'alert-primary';
+                //                 background_class = 'alert-primary';
 
-                                user_name = 'Me';
-                            }
+                //                 user_name = 'Me';
+                //             }
 
-                            output += `
-                                <div class="${row_class}">
-                                    <div class="col-sm-10">
-                                        <div class="shadow alert `+background_class+`">
-                                            <b>${user_name} - </b>
-                                            `+data.body+`<br />
-                                            <div class="text-right">
-                                                <small><i>`+data.message_creation+`</i></small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
+                //             output += `
+                //                 <div class="${row_class}">
+                //                     <div class="col-sm-10">
+                //                         <div class="shadow alert `+background_class+`">
+                //                             <b>${user_name} - </b>
+                //                             `+data.body+`<br />
+                //                             <div class="text-right">
+                //                                 <small><i>`+data.message_creation+`</i></small>
+                //                             </div>
+                //                         </div>
+                //                     </div>
+                //                 </div>
+                //             `;
 
-                            $('#messages_area').append(output);
+                //             $('#messages_area').append(output);
 
-                            $('#chat_message').val('');
+                //             $('#chat_message').val('');
 
-                        }
+                //         }
 
-                        $('#chat_message').val('');
+                //         $('#chat_message').val('');
 
-                    }
+                //     }
 
-                });
-
-                // $.post("ajax/message/createMessage.php",
-                //     {user_id, receiver_userid, message}).done(function(data) {
-
-                //     console.log(data);
-
-                        
                 // });
             }else{
             }
+
         });
 
         function createMessageForm(user_name,

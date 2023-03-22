@@ -53,11 +53,13 @@
         $POST_TITLE = $POST_TITLE . $additional;
 
         $wasSuccessful = $assignment->AddSubjectTerm
-            ($_POST['term'],
-            $POST_TITLE,$_POST['description'],
-            $_POST['subject_id'],
-            $teacher_course_id
-        );
+            (
+                $_POST['term'],
+                $POST_TITLE,
+                $_POST['description'],
+                $_POST['subject_id'],
+                $teacher_course_id
+            );
 
         header("Location: assignment.php?teacher_course_id=$teacher_course_id");
     }

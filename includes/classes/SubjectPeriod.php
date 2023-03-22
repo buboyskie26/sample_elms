@@ -255,7 +255,10 @@
             <div class='subjectPeriodContainerItem'>
                 <div class='align-straight'>
                     <div class='thumbnail'>
-                    <img src='$thumbnail'>
+                        <a href='edit_subject_period.php?subject_period_id=$subject_period_id'>
+                            <img src='$thumbnail'>                     
+                        </a>
+
                     </div>
                     <div class='details'>
                         <h3>$title</h3>
@@ -610,6 +613,329 @@
                 </div>";
         return $html;
  
+    }
+
+
+    public function createForm($teacher_course_id){
+        
+        $teacherCourse = new TeacherCourse($this->con, $teacher_course_id,
+            $this->userLoggedInObj);
+        
+        $subject_id = $teacherCourse->GetCourseSubjectId();
+
+        $periodDropdown = $this->createPeriodDropdown($teacher_course_id, $subject_id);
+
+        return "
+            <form action='add_subject_period.php' method='POST' 
+                enctype='multipart/form-data'>
+
+                    <div class='form-group'>
+
+                        <input class='mb-3 form-control' type='text' 
+                            placeholder='Subject Title' name='title'>
+                        
+                        <textarea class='mb-3 form-control summernote' name='description' placeholder='Description'></textarea>
+
+                        <input class='form-control mb-3' name='subject_period_upload' placeholder='File' type='file'>
+
+
+                        <label for=''style='margin-bottom: 10px;'>Period Term</label>
+                        $periodDropdown
+
+                        <input name='subject_id' type='hidden' value='$subject_id'>
+                        <input type='hidden' value='' name='teacher_course_id' value='$teacher_course_id'>
+
+                    </div>
+                    <button type='submit' class='btn btn-primary' name='add_subject_period_term'>Save</button>
+                </form>
+            ";
+    }
+    public function AddSubjectPeriod($title, $description, $term,
+        $subject_id, $teacher_course_id){
+
+        $image = $_FILES['subject_period_upload'] ?? null;
+        $imagePath='';
+
+        if (!is_dir('assets')) {
+            mkdir('assets');
+        }
+        
+        if (!is_dir('assets/images')) {
+            mkdir('assets/images');
+        }
+
+        if (!is_dir('assets/images/subject_period')) {
+            mkdir('assets/images/subject_period');
+        }
+        
+        if ($image && $image['tmp_name']) {
+            $imagePath = 'assets/images/subject_period' . '/' . $image['name'];
+            // mkdir(dirname($imagePath));
+            move_uploaded_file($image['tmp_name'], $imagePath);
+        }
+
+        $query = $this->con->prepare("INSERT INTO subject_period(term,title,
+                description, subject_id, teacher_course_id, thumbnail)
+            VALUES(:term,:title,:description, :subject_id, :teacher_course_id, :thumbnail)");
+        
+        $title = $title . " ($term)";
+
+        $query->bindValue(":term", $term);
+        $query->bindValue(":title", $title);
+        $query->bindValue(":description", $description);
+        $query->bindValue(":subject_id", $subject_id);
+        $query->bindValue(":teacher_course_id", $teacher_course_id);
+        $query->bindValue(":thumbnail", $imagePath);
+
+       
+        return $query->execute();
+    }
+
+    private function createPeriodDropdown($teacher_course_id, $subject_id){
+
+
+        $checkTermQuery = $this->con->prepare("SELECT term FROM subject_period
+            WHERE teacher_course_id= :teacher_course_id
+            AND subject_id=:subject_id");
+        
+        $checkTermQuery->bindValue(":teacher_course_id", $teacher_course_id);
+        $checkTermQuery->bindValue(":subject_id", $subject_id);
+
+        $checkTermQuery->execute();
+
+        $allTerm = array("Prelim", "Midterm", "Pre-Final", "Finals");
+        $currentTerm = [];
+        $output = "";
+
+        // print_r($result);
+
+        $resultx = [];
+        if($checkTermQuery->rowCount() > 0){
+
+            $renderedTerm = $checkTermQuery->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($renderedTerm as $key => $value) {
+                            # code...
+                $output =  $value['term'];
+                array_push($currentTerm, $output);
+            }
+
+            $resultx = array_diff($allTerm, $currentTerm);
+        }
+
+        $html2 = "<div class='form-group'>
+                <select class='form-control' name='term'>"; 
+
+        $i = 0;
+        $resultx= array_values($resultx);
+        
+        while($i < count($resultx)){
+            $html2 .= "
+                <option value='" . $resultx[$i] . "'>" . $resultx[$i] . "</option>
+            ";
+            $i++;
+        }
+
+        $html2 .= "</select>
+        </div>";
+
+        return $html2;
+    }
+
+
+    public function editSubjectPeriodForm($subject_period_id){
+        
+
+        $query = $this->con->prepare("SELECT * FROM subject_period
+            WHERE subject_period_id=:subject_period_id");
+
+        $query->bindValue(":subject_period_id", $subject_period_id);
+        $query->execute();
+        $query = $query->fetch(PDO::FETCH_ASSOC);
+
+        
+        $title = $query['title'];
+        $teacher_course_id = $query['teacher_course_id'];
+        $term = $query['term'];
+        $subject_id = $query['subject_id'];
+        $thumbnail = $query['thumbnail'];
+        $description = $query['description'];
+
+        $periodDropdown = $this->editPeriodDropdown($teacher_course_id,
+            $subject_id, $term);
+        $image = "";
+
+        if($thumbnail){
+            $image = "
+                <img class='mb-3' style='height: 270px; width:500px;' src='$thumbnail' alt='Image' >
+            ";
+        }
+
+        return "
+            <form action='edit_subject_period.php?subject_period_id=$subject_period_id' method='POST' 
+                enctype='multipart/form-data'>
+
+                    <div class='form-group'>
+                        $image
+                        <input class='form-control mb-3' name='subject_period_upload' placeholder='File' type='file' value='$thumbnail'>
+
+
+                        <input class='mb-3 form-control' type='text' 
+                            placeholder='Subject Title' name='title' value='$title'>
+                        
+                        <textarea class='mb-3 form-control summernote' name='description' placeholder='Description'>$description</textarea>
+
+                        <label for=''style='margin-bottom: 10px;'>Period Term</label>
+                        $periodDropdown
+
+                        <input type='hidden' name='teacher_course_id' value='$teacher_course_id' >
+                        <input type='hidden'  name='assignment_upload_value' value='$thumbnail' >
+
+                    </div>
+                    <button type='submit' class='btn btn-primary' name='edit_subject_period_term'>Save</button>
+                </form>
+            ";
+    }
+
+    public function editSubjectPeriod($title, $description, $term,
+        $teacher_course_id, $subject_period_id, $image_value){
+
+        $query = $this->con->prepare("SELECT * FROM subject_period
+            WHERE subject_period_id=:subject_period_id");
+
+        $query->bindValue(":subject_period_id", $subject_period_id);
+        $query->execute();
+
+        $query = $query->fetch(PDO::FETCH_ASSOC);
+        
+        // echo $query['thumbnail'];
+
+        $image = $_FILES['subject_period_upload'] ?? null;
+
+        print_r($image);
+
+        // if($image['name'] == ""){
+        //     echo "empty";
+        // }else{
+        //     echo "is in there";
+        // }
+
+        $imagePath='';
+
+        if (!is_dir('assets')) {
+            mkdir('assets');
+        }
+        
+        if (!is_dir('assets/images')) {
+            mkdir('assets/images');
+        }
+
+        if (!is_dir('assets/images/subject_period')) {
+            mkdir('assets/images/subject_period');
+        }
+
+        if ($image['name'] != "") {
+
+            // print_r($image);
+            if (file_exists($query['thumbnail'])) {
+                unlink($query['thumbnail']);
+            }
+
+            $imagePath = 'assets/images/subject_period' . '/' . $image['name'];
+            // mkdir(dirname($imagePath));
+            move_uploaded_file($image['tmp_name'], $imagePath);
+            //
+        }
+        
+        // if($imagePath == 'assets/images/subject_period/' ){
+        if($image['name'] == ""){
+            // If user didnt edit the image, let the image stay.
+            $imagePath = $image_value;
+        }
+
+        // echo $image;
+        // echo "<br>";
+        // echo $imagePath;
+
+        $query = $this->con->prepare("UPDATE subject_period
+            SET title=:title, description=:description,
+                term=:term, thumbnail=:thumbnail
+
+            WHERE subject_period_id=:subject_period_id
+            AND teacher_course_id=:teacher_course_id");
+
+        $query->bindValue(":title", $title);
+        $query->bindValue(":description", $description);
+        $query->bindValue(":term", $term);
+
+        // if($imagePath != "" && $image != null){
+        //     $query->bindValue(":thumbnail", $imagePath);
+        // }
+
+        $query->bindValue(":thumbnail", $imagePath);
+
+        $query->bindValue(":subject_period_id", $subject_period_id);
+        $query->bindValue(":teacher_course_id", $teacher_course_id);
+
+        if($query->execute()){
+            header("Location: assignment.php?teacher_course_id=$teacher_course_id");
+
+        }  
+        
+    }
+
+    private function editPeriodDropdown($teacher_course_id, $subject_id,
+        $term){
+
+
+        $checkTermQuery = $this->con->prepare("SELECT term FROM subject_period
+            WHERE teacher_course_id= :teacher_course_id
+            AND subject_id=:subject_id");
+        
+        $checkTermQuery->bindValue(":teacher_course_id", $teacher_course_id);
+        $checkTermQuery->bindValue(":subject_id", $subject_id);
+
+        $checkTermQuery->execute();
+
+        $allTerm = array("Prelim", "Midterm", "Pre-Final", "Finals");
+        $currentTerm = [];
+        $output = "";
+
+        // print_r($result);
+
+        $resultx = [];
+        if($checkTermQuery->rowCount() > 0){
+
+            $renderedTerm = $checkTermQuery->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($renderedTerm as $key => $value) {
+                            # code...
+                $output =  $value['term'];
+                array_push($currentTerm, $output);
+            }
+
+            $resultx = array_diff($allTerm, $currentTerm);
+        }
+
+        $html2 = "<div class='form-group'>
+                <select class='form-control' name='term'>"; 
+
+        $i = 0;
+        
+        array_push($resultx, $term);
+        $resultx= array_values($resultx);
+        
+        while($i < count($resultx)){
+            $html2 .= "
+                <option value='" . $resultx[$i] . "'>" . $resultx[$i] . "</option>
+            ";
+            $i++;
+        }
+
+        $html2 .= "</select>
+        </div>";
+
+        return $html2;
     }
 }
 ?>

@@ -27,6 +27,9 @@
             $result .= $this->createNavigation("teacher.php",
                 "../assets/images/icons/home.png", "Teacher");
 
+            $result .= $this->createNavigation("teacher_schedule.php",
+                "../assets/images/icons/home.png", "Schedule");
+
             if(AdminUser::IsAuthenticated()){
                     $result .= $this->createNavigation("logout.php", 
                 "../assets/images/icons/logout.png", "Logout");

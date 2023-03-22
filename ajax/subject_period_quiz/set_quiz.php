@@ -5,36 +5,6 @@
     require_once("../../includes/classes/SubjectPeriodQuiz.php");
     require_once("../../includes/classes/Teacher.php");
 
-    // if(isset($_POST['due_date']) 
-    //     && isset($_POST['quiz_title']) 
-    //     && isset($_POST['quiz_description'])
-    //     && isset($_POST['subject_period_id'])
-    //     && isset($_POST['teacher_id'])){
-
-    //     $due_date = $_POST['due_date'];
-    //     $quiz_title = $_POST['quiz_title'];
-    //     $quiz_description = $_POST['quiz_description'];
-
-    //     $subject_period_id = $_POST['subject_period_id'];
-    //     $teacher_id = $_POST['teacher_id'];
-
-    //     $teacherUserLoggedInObj = new Teacher($con, $teacher_id);
-
-    //     $subjectPeriod = new SubjectPeriod($con, $subject_period_id,
-    //         $teacherUserLoggedInObj, "teacher");
-
-    //     $subjectPeriodQuizId = $subjectPeriod->GetSubjectPeriodQuizId($teacher_id);
-        
-
-    //     $periodQuiz = new SubjectPeriodQuiz($con, $subjectPeriodQuizId,  $teacherUserLoggedInObj);
-
-    //     $periodQuiz->insertPeriodQuiz($quiz_title, $quiz_description,
-    //         $due_date, $subject_period_id, $teacher_id);
-
-    //     echo "success";
-    // }
-
-
     if(isset($_POST['save_subjectPeriodQuiz'])){
 
         $due_date = $_POST['due_date'];

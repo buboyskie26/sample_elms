@@ -19,7 +19,7 @@
 
         return "
             $subject_period_button
-
+           
             <div class='subjectPeriodContainer'>
                 $generateSubjectPeriod
             </div>
@@ -100,34 +100,39 @@
             ";
         }
 
-        
-
+        // Inefficient
+        // <a href='quiz_student.php'>
+        //     <button class='btn btn-sm btn-outline-primary'>Quizzes</button>
+        // </a>
+        // <a href='handout_student.php'>
+        //     <button class='btn btn-sm btn-outline-success'>Handouts</button>
+        // </a>
+        // <a href='assignment_prelim.php?teacher_course_id=$teacher_course_id&term=prelim'>
+        //     <button class='btn btn-sm btn-success'>Prelim</button>
+        // </a>
+        // <a href='assignment_prelim.php?teacher_course_id=$teacher_course_id&term=midterm'>
+        //     <button class='btn btn-sm btn-primary'>Midterm
+        //     </button>
+        // </a>
+        // <a href='assignment_prelim.php?teacher_course_id=$teacher_course_id&term=pre-final'>
+        //     <button class='btn btn-sm btn-secondary'>Pre-Finals
+        //     </button>
+        // </a>
+        // <a href='assignment_prelim.php?teacher_course_id=$teacher_course_id&term=final'>
+        //     <button class='btn btn-sm btn-success'>Finals
+        //     </button>
+        // </a>
+        //
         return "
             <div class='assignment_buttons'>
 
                 $gc_btn
-
-                <a href='quiz_student.php'>
-                    <button class='btn btn-sm btn-outline-primary'>Quizzes</button>
-                </a>
-                <a href='handout_student.php'>
-                    <button class='btn btn-sm btn-outline-success'>Handouts</button>
-                </a>
-                <a href='assignment_prelim.php?teacher_course_id=$teacher_course_id&term=prelim'>
-                    <button class='btn btn-sm btn-success'>Prelim</button>
-                </a>
-                <a href='assignment_prelim.php?teacher_course_id=$teacher_course_id&term=midterm'>
-                    <button class='btn btn-sm btn-primary'>Midterm
+                <a href='add_subject_period.php'>
+                    <button class='btn btn-success btn-sm'>
+                        Add Subject Period
                     </button>
                 </a>
-                <a href='assignment_prelim.php?teacher_course_id=$teacher_course_id&term=pre-final'>
-                    <button class='btn btn-sm btn-secondary'>Pre-Finals
-                    </button>
-                </a>
-                <a href='assignment_prelim.php?teacher_course_id=$teacher_course_id&term=final'>
-                    <button class='btn btn-sm btn-success'>Finals
-                    </button>
-                </a>
+                
             </div>
         ";
     }

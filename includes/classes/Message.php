@@ -9,6 +9,7 @@
         $this->con = $con;
         $this->teacherCourse = $teacherCourse;
         $this->userLoggedInObj = $userLoggedInObj;
+        
     }
 
     public function createLayoutForTeacher(){
@@ -22,7 +23,7 @@
 		        <div class='row'>
                     <div class='col-lg-3 col-md-4 col-sm-5' 
                         style='background-color: #f1f1f1;
-                        height: 100vh; border-right:1px solid #ccc;'>
+                        height: 55vh; border-right:1px solid #ccc;'>
 
                         <input type='hidden' name='login_teacher_id' id='login_teacher_id'
                             value='$login_teacher_id' />
@@ -41,9 +42,9 @@
 
                     </div>
 
-                    <div class='col-lg-9 col-md-8 col-sm-7'>
+                    <div class='col-lg-9 col-md-8 col-sm-7'  id='body_container'>
                         <br />
-                        <h3 class='text-center'>Realtime One to One Chat App using Ratchet WebSockets with PHP Mysql - Online Offline Status - 8</h3>
+                        <h3 class='text-center'>One to One Real time Chat</h3>
                         <hr />
                         <br />
                         
@@ -90,8 +91,7 @@
 
                     <div class='col-lg-9 col-md-8 col-sm-7'>
                         <br />
-                        <h3 class='text-center'>Realtime One to One Chat App using Ratchet WebSockets with PHP Mysql - Online Offline Status - 8</h3>
-                        <hr />
+                        <h3 class='text-center'>Realtime One to One Chat</h3>
                         <br />
                         
                         <div id='chat_area'>
@@ -104,11 +104,16 @@
     }
     private function listOfStudenr(){
 
+        $userLoggedInId = $this->userLoggedInObj->GetId();
+        $userLoggedInUsername = $this->userLoggedInObj->GetUsername();
+
         $output = "";
 
         $query =  $this->con->prepare("SELECT * FROM student");
 
         $query->execute();
+
+
 
         if($query->rowCount() > 0){
 
@@ -123,17 +128,44 @@
                 // $student_name = $student->GetName();
                 $student_name = $row['firstname'];
                 $student_id = $student->GetId();
+                $userConnectionId = $row['user_connection_id'];
                 $profilePic = $student->GetProfilePic();
 
                 // echo $student_name;
+
+                $didStudMessaged =  $this->UserHadMessagedByStudent($row['username'],
+                    $userLoggedInUsername);
+
+                $total_unread_message = "
+                    <span class='badge badge-danger badge-pill'
+                        id='user_username_$username'>
+                    </span>
+                ";
+                // jj
+
+                if($didStudMessaged > 0){
+
+                    // $total_unread_message = "
+                    //         <span style='background-color: red;' 
+                    //             id='userid_$student_id' class='badge badge-danger'>$didStudMessaged</span>
+                    //     ";
+                    $total_unread_message = "
+                            <span style='background-color: red;'
+                                class='badge badge-danger badge-pill' id='user_username_$username'>$didStudMessaged
+                            </span>
+                        ";
+                }
+
+                // 
                 $output .= "
                     <a class='list-group-item list-group-item-action select_user' 
-                        style='cursor:pointer' data-student_id='$student_id'>
+                        style='cursor:pointer' data-student_id='$student_id'
+                        data-student_username='$username' data-connection_id='$userConnectionId' >
                         <img src='$profilePic' class='img-fluid rounded-circle img-thumbnail' width='50' />
                         <span class='ml-1'>
                             <strong>
                                 <span id='list_student_name_$student_id'>$student_name</span>
-                                <span id='userid_1'>5</span>
+                                $total_unread_message
                             </strong>
                         </span>
                         <span class='mt-2 float-right' id='userstatus_1'>$icon</span>
@@ -146,6 +178,8 @@
     private function listOfTeachers(){
 
         $output = "";
+        
+        $userLoggedInUsername = $this->userLoggedInObj->GetUsername();
 
         $query =  $this->con->prepare("SELECT * FROM teacher");
 
@@ -154,6 +188,7 @@
         if($query->rowCount() > 0){
 
 	        $icon = '<i class="fa fa-circle text-success"></i>';
+            
             while($row = $query->fetch(PDO::FETCH_ASSOC)){
 
                 $username = $row['username'];
@@ -165,15 +200,51 @@
                 $teacher_id = $teacher->GetId();
                 $profilePic = $teacher->GetProfilePic();
 
+				// $total_unread_message = "";
+
+                $didStudMessaged = $this->UserHadMessagedByTeacher($row['username'],
+                    $userLoggedInUsername);
+
+                
+
+                // if($didStudMessaged > 0){
+                //     $total_unread_message = "
+                //         <span id='userid_$teacher_id'
+                //             class='badge badge-danger badge-pill'>
+                //             $didStudMessaged
+                //         </span>"
+                //     ;
+                // }
+               
+
+                $total_unread_message = "
+                    <span class='badge badge-danger badge-pill'
+                        id='user_username_$username'>
+                    </span>
+                ";
+                // jj
+
+                if($didStudMessaged > 0){
+ 
+                    $total_unread_message = "
+                            <span style='background-color: red;' class='badge badge-danger badge-pill'
+                                id='user_username_$username'>$didStudMessaged
+                            </span>
+                        ";
+                }
+                
+
                 // echo $teacher_name;
                 $output .= "
                     <a class='list-group-item list-group-item-action select_user' 
-                        style='cursor:pointer' data-userid='$teacher_id'>
+                        style='cursor:pointer' data-userid='$teacher_id'
+                         data-teacher_username='$username'
+                        >
                         <img src='$profilePic' class='img-fluid rounded-circle img-thumbnail' width='50' />
                         <span class='ml-1'>
                             <strong>
                                 <span id='list_user_name_$teacher_id'>$teacher_name</span>
-                                <span id='userid_1'>5</span>
+                                $total_unread_message
                             </strong>
                         </span>
                         <span class='mt-2 float-right' id='userstatus_1'>$icon</span>
@@ -184,6 +255,49 @@
         return $output;
     }
 
+    private function UserHadMessagedByTeacher($teacher_username, $userLoggedInUsername){
+
+        $statement = $this->con->prepare("SELECT message_teacher_id FROM message_teacher
+            WHERE from_username=:from_username
+            AND to_username=:to_username
+            AND opened='no'
+            " );
+
+        $statement->bindValue(":from_username", $teacher_username);
+        $statement->bindValue(":to_username", $userLoggedInUsername);
+        $statement->execute();
+
+        if($statement->rowCount() > 0){
+        // If we want to see only one unread messages.
+            return 1;
+        }
+        return 0;
+        // If we want to see all unread messages.
+        // return $statement->rowCount();
+        // return $statement->rowCount();
+
+    }
+
+    private function UserHadMessagedByStudent($student_username, $userLoggedInUsername){
+
+        $statement = $this->con->prepare("SELECT message_teacher_id FROM message_teacher
+            WHERE from_username=:from_username
+            AND to_username=:to_username
+            AND opened='no'
+            " );
+
+        $statement->bindValue(":from_username", $student_username);
+        $statement->bindValue(":to_username", $userLoggedInUsername);
+        $statement->execute();
+        if($statement->rowCount() > 0){
+        // If we want to see only one unread messages.
+            return 1;
+        }
+        return 0;
+        // If we want to see all unread messages.
+        // return $statement->rowCount();
+    }
+    
     public function createMessageForm(){
 
 
@@ -237,19 +351,15 @@
             <div class='col-lg-9 col-md-8 col-sm-7'>
 				<br />
 		        <h3 class='text-center'>Realtime One to One Chat</h3>
-		        <hr />
 		        <br />
 		        <div id='chat_areax'></div>
 			</div>
         ";
 
     }
-    public function GetOneToOneMessage($teacher_username, $student_username){
-
-        // echo "samp";
-        // $loggedInStudentId = $this->userLoggedInObj->GetId();
-        // $loggedInTeacherId = $this->userLoggedInObj->GetId();
+    public function GetOneToOneMessage($teacher_username, $student_username, $userView){
         
+
         $sql = $this->con->prepare("SELECT * FROM message_teacher
             WHERE to_username=:to_username
             AND from_username=:from_username
@@ -270,10 +380,72 @@
         $sql->execute();
 
         if($sql->rowCount() > 0){
+
+
+            if($userView == "teacher"){
+
+                $checkIfOpened = $this->con->prepare("SELECT message_teacher_id FROM message_teacher
+                    WHERE to_username=:to_username
+                    AND from_username=:from_username
+                    AND opened= 'no'
+                    ");
+                $checkIfOpened->bindValue(":to_username", $teacher_username);
+                $checkIfOpened->bindValue(":from_username", $student_username);
+                $checkIfOpened->execute();
+
+                if($checkIfOpened->rowCount() > 0){
+                    // Update in the opened column as 'yes' in the student side.
+                    // Needs to be in real time.
+                    $sqlUpdate = $this->con->prepare("UPDATE message_teacher
+                        SET opened= 'yes'
+                        WHERE from_username=:from_username
+                        AND to_username=:to_username");
+
+                    $sqlUpdate->bindValue(":from_username", $student_username);
+                    $sqlUpdate->bindValue(":to_username", $teacher_username);
+                    $sqlUpdate->execute();
+                }
+
+                
+            }
+
+            if($userView == "student"){
+
+                $checkIfOpened = $this->con->prepare("SELECT message_teacher_id FROM message_teacher
+                    WHERE to_username=:to_username
+                    AND from_username=:from_username
+                    AND opened= 'no'
+                    ");
+
+                $checkIfOpened->bindValue(":to_username", $student_username);
+                $checkIfOpened->bindValue(":from_username", $teacher_username);
+                $checkIfOpened->execute();
+
+                if($checkIfOpened->rowCount() > 0){
+                    // Update in the opened column as 'yes' in the student side.
+                    // Needs to be in real time.
+                    $sqlUpdate = $this->con->prepare("UPDATE message_teacher
+                        SET opened= 'yes'
+                        WHERE from_username=:from_username
+                        AND to_username=:to_username");
+
+                    $sqlUpdate->bindValue(":from_username", $teacher_username);
+                    $sqlUpdate->bindValue(":to_username", $student_username);
+                    $sqlUpdate->execute();
+                }
+                
+
+            }
+
             // echo "qweqweqwe";
             return $sql->fetchAll(PDO::FETCH_ASSOC);
         }
     
+    }
+
+
+    public function AddMessage(){
+
     }
 }
 ?>

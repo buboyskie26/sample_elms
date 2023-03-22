@@ -16,6 +16,17 @@
 
         $this->sqlData = $query->fetch(PDO::FETCH_ASSOC);
 
+        if($this->sqlData == null){
+
+            $teacher_id = $userLoggedIn;
+
+            $query = $this->con->prepare("SELECT * FROM teacher
+            WHERE teacher_id=:teacher_id");
+
+            $query->bindValue(":teacher_id", $teacher_id);
+            $query->execute();
+            $this->sqlData = $query->fetch(PDO::FETCH_ASSOC);
+        }
         // if(!is_numeric($userLoggedIn)){
         //     $query = $this->con->prepare("SELECT * FROM teacher
         //         WHERE username=:username");
